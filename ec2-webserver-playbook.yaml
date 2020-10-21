@@ -1,7 +1,7 @@
 - amazon.aws.ec2:
     key_name: ansible
     instance_type: t2.micro
-    image: ami-7bf82119
+    image: ami-0f96495a064477ffb
     wait: yes
     group: webserver
     count: 3
