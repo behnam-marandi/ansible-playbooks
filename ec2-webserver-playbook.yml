@@ -1,9 +1,48 @@
-- amazon.aws.ec2:
-    key_name: ansible
-    instance_type: t2.micro
-    image: ami-0f96495a064477ffb
-    wait: yes
-    group: webserver
-    count: 3
-    vpc_subnet_id: subnet-04093572
-    assign_public_ip: no
+- name: Create Ec2 instances
+  hosts: localhost
+  gather_facts: false
+  tasks:
+
+  # Block is a Group of Tasks combined together
+  - name: Get Info Block
+    block: 
+      - name: Get Running instance Info
+        
+        ec2_instance_info:
+        register: ec2info 
+
+      - name: Print info
+        debug: var="ec2info.instances"
+             
+
+    # By specifying always on the tag, 
+    # I let this block to run all the time by module_default
+    # this is for security to net create ec2 instances accidentally
+    tags: ['always', 'getinfoonly']
+
+  - name: Create EC2 Block
+    block: 
+
+      - name: Launch ec2 instances
+        tags: create_ec2
+        ec2:
+          region: ap-southeast-2
+          key_name: ansible 
+          group: app_sec_group
+          instance_type: t2.micro
+          image: ami-0f96495a064477ffb
+          wait: yes
+          wait_timeout: 500
+          count: 3
+          instance_tags:
+            name: appservers
+            os: amznlinux2
+          monitoring: no
+          vpc_subnet_id: subnet-04093572
+          assign_public_ip: no
+        register: ec2
+        delegate_to: localhost
+
+    # By specifying never on the tag of this block, 
+    # I let this block to run only when explicitely being called
+    tags: ['ansible-test', 'ec2-create']
